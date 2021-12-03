@@ -1,7 +1,12 @@
 
 path := $(shell pwd)
-
 network := --network minha-rede
+
+##########################################################
+# ALL
+upall: upmongo upredis upapp
+
+downall: downapp downredis downmongo
 
 ##########################################################
 # APP
@@ -12,32 +17,37 @@ app_workdir := /var/www/app
 app_cmd 	:= npm run dev
 
 preperapp:
-	docker run -d -p 4000:4000 -v $(path)/app:/var/www/app --name myapp -w /var/www/app --network minha-rede node npm run dev
+	docker run -d -p $(app_port) -v $(app_volume) --name myapp -w $(app_workdir) $(network) node npm run dev
 
 upapp:
 	docker start myapp
 
 downapp:
 	docker stop myapp
+
 ##########################################################
 # MONGO
 prepermongo:
-	docker run -d -p 27017:27017 --name mymongo --network minha-rede mongo
+	docker run -d -p 27017:27017 --name mymongo $(network) mongo
 
 upmongo:
-	docker star mymongo
+	docker start mymongo
 
 downmongo:
 	docker stop mymongo
+
 ##########################################################
 # REDIS
 
+redis_ports := 6379:6379
+
 upredis:
-	docker run -d -p ???? --name myredis --network minha-rede redis
+	docker run -d -p $(redis_ports) --name myredis $(network) redis
 
 downredis:
 	docker stop myredis
 
+##########################################################
+# DOCKER NETWORK
 createNetwork:
 	docker network create --driver bridge minha-rede
-
